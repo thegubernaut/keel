@@ -1,9 +1,10 @@
 # Gubernaut Keel
 
-**Gubernaut Keel stops your AI agent from getting stuck in an expensive loop, running
-directly inside your own JavaScript or TypeScript program.**
+**Gubernaut Keel tells your program when its AI agent is stuck in an expensive loop, running
+directly inside your own JavaScript, TypeScript or Rust program.**
 
-It installs as the package `@gubernaut/core`. This repository is a full copy of the
+It installs as the package `@gubernaut/core` for JavaScript and TypeScript, and as the crate
+`gubernaut-core` for Rust. This repository is a full copy of the
 Gubernaut project's code, with this page written to explain Keel in plain language. The
 original, main copy of this project lives at
 [github.com/thegubernaut/gubernaut](https://github.com/thegubernaut/gubernaut).
@@ -16,8 +17,8 @@ Sometimes an AI agent gets stuck. It tries the same thing over and over, and eve
 try costs you money, because you pay for every message sent to the AI model. If nobody is
 watching, this can burn through a lot of money very fast, before a person even notices.
 
-Keel is the same decision-making engine as Tiller (Gubernaut's Python proxy), but built to
-run **directly inside your own JavaScript or TypeScript program**, with no separate program
+Keel is the same decision-making engine as Tiller (Gubernaut's local proxy), but built to
+run **directly inside your own program**, with no separate program
 to start and no network connection needed. You feed it three numbers, and it tells you what
 to do next.
 
@@ -31,7 +32,7 @@ places:
 | Where it runs | A separate small program on your computer | Directly inside your own code |
 | What it needs | Sits in front of your network calls to the AI | Nothing extra. No network hop, no separate program |
 | What it does | Watches AND stops the call automatically | Tells you what to do. Your own code has to act on it |
-| Best for | Python projects, or "just make it work" | JavaScript/TypeScript projects that want full control |
+| Best for | Any program that speaks the OpenAI API, in any language | JavaScript, TypeScript or Rust programs that want the decision in-process |
 
 **Keel decides. It does not act on its own.** When Keel tells you the agent is stuck, it is
 your own code's job to actually stop the call. This is the one thing Keel deliberately
@@ -45,9 +46,10 @@ Every time your AI agent takes a turn, you give Keel three simple numbers:
 2. **How positive or negative** the turn feels.
 3. **How much this turn repeats** the last one.
 
-Keel never reads your actual words. It only ever looks at these three numbers. That matters,
-because it means nothing written in the conversation can trick Keel into ignoring a problem:
-it isn't reading text at all, so there is nothing in the text to fool it.
+Keel never reads your actual words. It only ever looks at these three numbers, so a sentence
+in the conversation has nothing to argue with. That protection covers the decision only, and
+it has not yet been tested by attackers: no jailbreak success-rate figure exists, because none
+was measured. The details are in [`docs/LIMITS.md`](docs/LIMITS.md).
 
 Based on those three numbers, Keel decides one of three things:
 
@@ -93,21 +95,19 @@ for (const turn of conversation) {
 That's it. No separate program to run, no network connection, and it works the same way in
 a browser, in Node, or on an edge server like Cloudflare Workers.
 
-## Does this actually save money? Yes, and here is the honest number
+## Does this save money? What was measured, and through what
 
-Keel runs the exact same decision-making engine that Tiller runs, so it produces the exact
-same results. We tested it against real AI models, on purpose, in a situation designed to
-make the AI get stuck in a loop, and compared the cost with the decision-maker on versus
-off.
+**The spend was measured through Tiller, the proxy, so those numbers are Tiller's evidence,
+not Keel's.** Across seven measured configurations in four model families, the proxy saved
+79.8% to 95.9% of a looping agent's bill. Both runs made the same number of attempts. The best
+result was GPT-5.6 Sol at 95.9% saved, and the smallest was Claude Haiku 4.5 at 79.8%.
 
-**Across every test we ran, following the decision saved somewhere between 79.8% and 95.9%
-of the money that would otherwise have been wasted.** The best single result: a test that
-would have cost $0.1669 cost only $0.0068 when the loop was stopped in time, a 95.9% saving.
-That is the best result we saw, not an average, and we always show you the worst result too
-so nothing is hidden.
+Keel makes the same decision on the same numbers: the compiled Rust core reproduces the Python
+controller bit-exactly, and the decision is identical on every run. With Keel, though, the
+saving only happens if your code carries out the stop.
 
-Every number here comes from a real, repeatable test. Anyone can run the same test
-themselves and check our math. The full, detailed record, including every test we ran, is
+Every number here comes from a recorded, repeatable test. Anyone can run the same test and
+check the math. The full, detailed record, including every test that was run, is
 in this same repository under [`receipts/`](receipts/), and also at
 [gubernaut.com/research](https://gubernaut.com/research).
 
@@ -120,9 +120,8 @@ it does.
   numbers described above.
 - Keel does not stop anything by itself. It tells you what it decided; acting on that
   decision is your code's job.
-- Keel cannot promise it will catch every possible bad situation. It has been tested a lot,
-  and we show you exactly what it catches and what it misses, in this repository's
-  [`docs/LIMITS.md`](docs/LIMITS.md).
+- Keel cannot promise it will catch every possible bad situation. What it catches and what it
+  misses are both published, in this repository's [`docs/LIMITS.md`](docs/LIMITS.md).
 - Keel is not a mind and does not think or feel anything. It is a simple, predictable set of
   rules, the same way a thermostat is a simple, predictable set of rules for a room's
   temperature.
@@ -138,22 +137,23 @@ npm ci
 npm test
 ```
 
-If your results disagree with ours, that is more useful to us than if they match. Please
-tell us: [open an issue](https://github.com/thegubernaut/gubernaut/issues/new?template=reproduction.yml).
+If your results disagree with the published ones, that is the most useful report there is:
+[open an issue](https://github.com/thegubernaut/gubernaut/issues/new?template=reproduction.yml).
 
 ## Cost, license, and who is behind this
 
 Keel is completely **free** and licensed under **Apache-2.0**. There is no paid tier, no
 account, and nothing is collected about you while it runs.
 
-If you use Gubernaut in your own work, please cite it:
+If you use Gubernaut in your own work, please cite the paper:
 
-> Gubernaut Research. *Gubernaut Cognitive Controller (GCC).* Zenodo.
-> https://doi.org/10.5281/zenodo.21303518
+> Sharma, D. (2026). *Gubernaut: A Deterministic Homeostatic Controller for Affect-Regulated
+> LLM Agents, Validated Across Independent Model Families.* Zenodo.
+> https://doi.org/10.5281/zenodo.21303518 · [arXiv 2607.24339](https://arxiv.org/abs/2607.24339)
 
 No consciousness or mind claims are made anywhere in this project. This is a regulation
 layer: it watches a small number of signals and responds to them, in a way that can be
-measured and checked. Byline: Gubernaut Research.
+measured and checked. Built by Dushyant Sharma at Gubernaut Lab.
 
 **Full technical documentation:** [github.com/thegubernaut/gubernaut](https://github.com/thegubernaut/gubernaut) ·
 **Website:** [gubernaut.com](https://gubernaut.com)
