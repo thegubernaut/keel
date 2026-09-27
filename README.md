@@ -98,9 +98,11 @@ a browser, in Node, or on an edge server like Cloudflare Workers.
 ## Does this save money? What was measured, and through what
 
 **The spend was measured through Tiller, the proxy, so those numbers are Tiller's evidence,
-not Keel's.** Across seven measured configurations in four model families, the proxy saved
-79.8% to 95.9% of a looping agent's bill. Both runs made the same number of attempts. The best
-result was GPT-5.6 Sol at 95.9% saved, and the smallest was Claude Haiku 4.5 at 79.8%.
+not Keel's.** On Tiller's verbatim-loop battery, across seven measured configurations in four
+model families, the proxy saved 79.8% to 95.9% of the loop's spend. Both runs made the same
+number of attempts. The best result was GPT-5.6 Sol at 95.9% saved, and the smallest was
+Claude Haiku 4.5 at 79.8%. Gemini-native Gemma is free-tier only, so those rows are token
+deltas and carry no dollar claim.
 
 Keel makes the same decision on the same numbers: the compiled Rust core reproduces the Python
 controller bit-exactly, and the decision is identical on every run. With Keel, though, the
